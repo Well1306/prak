@@ -18,18 +18,19 @@ int main(){
                         numb_s++;
                         if((ch = getchar()) == EOF) break;
                 }
-                if(numb_s > numb_max){
-            lenmax = malloc(0);
+                if(numb_s > numb_max)d
+			if(lenmax != NULL) free(lenmax);
                         lenmax = maslen;
                         numb_max = numb_s;
                 }
-        maslen = malloc(0);
+		else free(maslen);
+		maslen = NULL;
                 numb_s = size_s = 0;
         }
     int i;
         for(i = 0; i < numb_max; i++)
                 putchar(lenmax[i]);
-           putchar('\n');
-    lenmax = malloc(0);
+        putchar('\n');
+	free(lenmax);
         return 0;
 }
