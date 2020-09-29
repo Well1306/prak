@@ -2,7 +2,7 @@
 #include <stdlib.h>
 char* lenmax = NULL;
 char* maslen = NULL;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(){
         int size_s = 0;
         int numb_s = 0, numb_max = 0;
@@ -18,7 +18,7 @@ int main(){
                         numb_s++;
                         if((ch = getchar()) == EOF) break;
                 }
-                if(numb_s > numb_max)d
+                if(numb_s > numb_max){
 			if(lenmax != NULL) free(lenmax);
                         lenmax = maslen;
                         numb_max = numb_s;
