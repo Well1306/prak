@@ -18,19 +18,18 @@ int main(){
 			i++;
 			if ((s1 != NULL) && (s2 != NULL)) 
 			{
-				printf("%d\n", strcmp(s1,s2));
-				printf("%s", s1);
-				printf("%s\n", s2);
 				if (strcmp(s1,s2) != 0) {
-					printf("файлы различаются в строке %d\n", i);
-					printf("%s", s1);
-					printf("%s", s2);
+					printf("Файлы различаются в строке %d\n", i);
+					printf("Строка первого файла: %s", s1);
+					printf("Строка второго файла: %s", s2);
 					goto cle;
 				}
 			}
-			else 	if ((s1 == NULL) && (s2 == NULL)) {printf("файлы идентичны\n"); goto cle;}
+			else 	if ((s1 == NULL) && (s2 == NULL)) {printf("Файлы идентичны\n"); goto cle;}
 				else {
-					printf("один из файлов короче, различаются в строке %d\n", i);
+					printf("Один из файлов короче, различаются в строке %d\n", i);
+					if (s1 != NULL) printf("Первый файл длиннее, последняя строка: %s", s1);
+					if (s2 != NULL) printf("Второй файл длиннее, последняя строка: %s", s2);
 					goto cle;
 				}
 		};
