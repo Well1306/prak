@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #define N 1024
 
-int main(){
-	FILE* f1 = fopen("aa1.txt", "r");
-	FILE* f2 = fopen("aa2.txt", "r");
+int main(int argc, char* argv[]){
+	FILE* f1 = fopen(argv[1], "r");
+	FILE* f2 = fopen(argv[2], "r");
 	char *s1 = malloc(N), *s2 = malloc(N);
 	int i = 0;
-	if ((f1 == NULL) || (f2 == NULL)) {printf("Один из файлов не удалось открыть"); goto clem;}
+	if (argc < 2) {printf("Один из файлов не удалось открыть"); goto clem;}
 	else
 	{
 		while(1)
