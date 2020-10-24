@@ -64,7 +64,7 @@ int main(int argc, char ** argv) {
             }
         }
 next:   if(flag) utf16ch = swapbytes(utf16ch);
-        fwrite(&utf16ch, sizeof unsigned, 1, outf);
+        fwrite(&utf16ch, sizeof utf16ch, 1, outf);
 bc:     utf16ch = 0;
     }
     fclose(inpf);
