@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     FILE* outf = stdout;
     char ch;
     unsigned short a = 0, utf16ch = 0;
-    int eof, rd, be = 0, ofs = 0;
+    int be = 0, ofs = 0;
     if(argc > 1) {
         if((inpf = fopen(argv[1], "r")) == NULL) {
             fprintf(stderr, "Cannot open input file\n");
@@ -25,11 +25,10 @@ int main(int argc, char ** argv) {
                 return 2;
             }
     }
-    eof = feof(inpf);
-    if((rd = fread(&utf16ch, sizeof utf16ch, 1, inpf)) == 0) goto end;
+    if((fread(&utf16ch, sizeof utf16ch, 1, inpf)) == 0) goto end;
     be = utf16ch == 0xFFFE;
     goto bom;
-    while((rd = fread(&utf16ch, sizeof utf16ch, 1, inpf)) != 0) {
+    while((fread(&utf16ch, sizeof utf16ch, 1, inpf)) != 0) {
 bom:    ofs++;
         if(be) utf16ch = swapbytes(utf16ch);
         if((utf16ch & 0xF800) != 0) {
