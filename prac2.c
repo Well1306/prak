@@ -1,11 +1,11 @@
 #include <stdio.h>
 // о
 unsigned short swapbytes(unsigned short b) {
-    unsigned short a = b & 0xFF00;
-    b = b << 8;
+    unsigned short a = b & 0xFF00, c = b & 0x00FF;
+    c = c << 8;
     a = a >> 8;
-    b += a;
-    return b;
+    c += a;
+    return c;
 }
 
 int main(int argc, char ** argv) {
