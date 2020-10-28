@@ -29,8 +29,7 @@ int main(int argc, char ** argv) {
         ofs++;
         if(utf16ch == 0) {
             utf16ch += (unsigned short) ch;
-            if((ch & 0x80) == 0) goto next;
-            else {
+            if((ch & 0x80) != 0) {
                 if((ch & 0xF0) == 0xE0) {
                     for(i = 1; i <= 2; i++) {
                         utf16ch = utf16ch << 6;
@@ -63,7 +62,7 @@ int main(int argc, char ** argv) {
                 }
             }
         }
-next:   if(flag) utf16ch = swapbytes(utf16ch);
+        if(flag) utf16ch = swapbytes(utf16ch);
         fwrite(&utf16ch, sizeof utf16ch, 1, outf);
 bc:     utf16ch = 0;
     }
