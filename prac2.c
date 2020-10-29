@@ -1,19 +1,19 @@
 #include <stdio.h>
 // о
 unsigned short swapbytes(unsigned short b) {
-    unsigned short a = b & 0xFF00, c = b & 0x00FF;
-    c = c << 8;
+    unsigned short a = b & 0xFF00;
+    b = b << 8;
     a = a >> 8;
-    c += a;
-    return c;
+    b += a;
+    return b;
 }
 
 int main(int argc, char ** argv) {
     FILE* inpf = stdin;
     FILE* outf = stdout;
-    char ch;
+    char ch, bs = 0;
     unsigned short utf16ch = 0;
-    int i, flag = 0, ofs = 0;
+    int i, flag = 0, ofs = 0, bofs = 0;
     if(argc > 1) {
         if((inpf = fopen(argv[1], "r")) == NULL) {
             fprintf(stderr, "Cannot open input file\n");
@@ -36,8 +36,8 @@ int main(int argc, char ** argv) {
                         ch = fgetc(inpf);
                         ofs++;
                         if((ch & 0xC0) != 0x80) {
-                            fprintf(stderr, "broken symbol %x in pos %d\n", (unsigned char) ch, ofs);
-                            goto bc;
+                            bs = ch;
+                            bofs = ofs;
                         }
                         ch = ch & 0x3F;
                         utf16ch += (unsigned short) ch;
@@ -50,21 +50,25 @@ int main(int argc, char ** argv) {
                     ch = fgetc(inpf);
                     ofs++;
                     if((ch & 0xC0) != 0x80) {
-                        fprintf(stderr, "broken symbol %x in pos %d\n", (unsigned char) ch, ofs);
-                        goto bc;
+                        bs = ch;
+                        bofs = ofs;
                     }
                     ch = ch & 0x3F;
                     utf16ch += (unsigned short) ch;
                     utf16ch = utf16ch & 0x07FF;
                 } else {
-                    fprintf(stderr, "broken symbol %x in pos %d\n", (unsigned char) ch, ofs);
-                    goto bc;
+                    bs = ch;
+                    bofs = ofs;
                 }
             }
         }
         if(flag) utf16ch = swapbytes(utf16ch);
-        fwrite(&utf16ch, sizeof utf16ch, 1, outf);
-bc:     utf16ch = 0;
+        if(bs && ofs) {
+            fprintf(stderr, "Broken symbol %x in pos %d\n", (unsigned char) bs, bofs);
+            bs  = bofs = 0;
+        }
+        else fwrite(&utf16ch, sizeof utf16ch, 1, outf);
+        utf16ch = 0;
     }
     fclose(inpf);
     fclose(outf);
