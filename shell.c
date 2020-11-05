@@ -31,7 +31,6 @@ int main() {
     char ch, flag;
     int numb_s = 0, size_s = 0;                             //длина слова 
     int numb_m = 0, size_m = 0;                             //количество слов
-    int i;
     printdir();
     while((ch = getchar()) != EOF) {
         while(ch != '\n') {
