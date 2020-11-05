@@ -6,8 +6,8 @@
 #include <string.h>
 #include <sys/wait.h>
 
-char** mas;
-char* s;
+char** mas = NULL;
+char* s = NULL;
 
 void delmas(int numb_m) {
     int j;
@@ -58,13 +58,24 @@ int main() {
         mas = realloc(mas, sizeof(*mas) * (size_m + 1));
         mas[numb_m] = (char*) NULL;
         /*команда с аргументами считана в массив mas*/
-        if(!fork()) {
-            if(execvp(mas[0], mas) == -1) fprintf(stderr, "Unknown command\n");
+        if(mas[0]) {
+            if(!strcmp(mas[0], "exit")) {
+                delmas(numb_m);
+                exit(0);
+            } else {
+                if(!fork()) {
+/*
+ *              if(mas[0] == "cd") {
+ *                  if(!chdir(
+ *              }
+ */ 
+                if(execvp(mas[0], mas) == -1) fprintf(stderr, "%s: command not found.\n", mas[0]);
+                break;
+                } else wait(0);
+            }
         }
-        wait(0);
-        printf("\n");
-        delmas(numb_m);
-        numb_m = size_m = 0;
+    delmas(numb_m);
+    numb_m = size_m = 0;
     }
     return 0;
 }
