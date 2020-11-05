@@ -27,7 +27,7 @@ void delmas(int numb_m) {
 }
 
 int main() {
-    char* home = getenv("HOME");                                //домашняя директория
+    char* home = getenv("HOME");                            //домашняя директория
     char ch, flag;
     int numb_s = 0, size_s = 0;                             //длина слова 
     int numb_m = 0, size_m = 0;                             //количество слов
@@ -77,7 +77,7 @@ int main() {
                 if(!strcmp(mas[0],"cd")) {
                     if(mas[1]) {
                         if(chdir(mas[1]) == -1) {
-                            printf("%s: %s: No such file or directory.\n", mas[0], mas[1]);
+                            printf("%s: %s: No such file or directory\n", mas[0], mas[1]);
                         }
                     } else chdir(home);
                 } else {
