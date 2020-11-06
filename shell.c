@@ -84,6 +84,7 @@ int main() {
                     if(!fork()) {
                         if(execvp(mas[0], mas) == -1) {
                             fprintf(stderr, "%s: command not found\n", mas[0]);
+                            delmas(numb_m);
                             exit(0);
                         }
                     } else wait(0);
