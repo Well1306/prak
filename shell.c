@@ -78,13 +78,14 @@ int main() {
                 if(!strcmp(mas[0],"cd")) {
                     if(mas[1]) {
                         if(chdir(mas[1]) == -1) {
-                            printf("%s: %s: No such file or directory.\n", mas[0], mas[1]);
+                            printf("%s: %s: No such file or directory\n", mas[0], mas[1]);
                         }
                     } else chdir(home);
                 } else {
                     if(!fork()) {
                         if(execvp(mas[0], mas) == -1) {
                             fprintf(stderr, "%s: command not found\n", mas[0]);
+                            delmas(numb_m);
                             exit(0);
                         }
                     } else wait(0);
