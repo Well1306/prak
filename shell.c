@@ -27,7 +27,7 @@ void delmas(int numb_m) {
 }
 
 int main() {
-    char* home = getenv("HOME");                                //домашняя директория
+    char* home = getenv("HOME");                            //домашняя директория
     char ch, flag;
     int numb_s = 0, size_s = 0;                             //длина слова 
     int numb_m = 0, size_m = 0;                             //количество слов
@@ -42,8 +42,10 @@ int main() {
                             s = realloc(s,sizeof(char) *  size_s);
                             if(!s) {fprintf(stderr, "End of memory.\n"); return 1;}
                     }
-                    s[numb_s] = ch;
-                    numb_s++;
+                    if(ch != '\"') {
+                        s[numb_s] = ch;
+                        numb_s++;
+                    }
                     if((ch = getchar()) == EOF) break;
                     if(ch == '\n') break;
                     if(ch == '\"') flag = 0;
@@ -83,6 +85,7 @@ int main() {
                     } else chdir(home);
                 } else {
                     if(!fork()) {
+                        //for(i = 0; i < numb_m; i++) fprintf(stderr, "%s ", mas[i]);
                         if(execvp(mas[0], mas) == -1) {
                             fprintf(stderr, "%s: command not found\n", mas[0]);
                             delmas(numb_m);
