@@ -41,8 +41,10 @@ int main() {
                             s = realloc(s,sizeof(char) *  size_s);
                             if(!s) {fprintf(stderr, "End of memory.\n"); return 1;}
                     }
-                    s[numb_s] = ch;
-                    numb_s++;
+                    if(ch != '\"') {
+                        s[numb_s] = ch;
+                        numb_s++;
+                    }
                     if((ch = getchar()) == EOF) break;
                     if(ch == '\n') break;
                     if(ch == '\"') flag = 0;
