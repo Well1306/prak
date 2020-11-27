@@ -322,7 +322,7 @@ int main() {
             seps[i] = NULL;
             if(flag_r[i] == -2) {
                 free(r_file[i]);
-                r_file = NULL;
+                r_file[i] = NULL;
             }
             if((flag_w[i] == -2) || (flag_a[i] == -2)) {
                 free(wa_file[i]);
