@@ -402,7 +402,8 @@ int main() {
                     } else {
                         if(!(pid = fork())) {
                             //for(i = 0; i < numb_m; i++) fprintf(stderr, "%s ", mas[i]);
-                            signal(SIGINT, SIG_DFL);
+                            if(!back_flag) signal(SIGINT, SIG_DFL);
+                            else signal(SIGINT, SIG_IGN);
                             /*if(back_flag) {
                                 //printf("[%d]  %d\n", size_b, proc[size_b - 1]);
                                 while(!sig) printf("@");
