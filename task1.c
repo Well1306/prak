@@ -34,24 +34,29 @@ int main(int argc, char** argv) {
     int fd[2];
     int i;
     int error = 1;
+    int status;
+    pid_t pid;
     pipe(fd);
 
     if(!fork()) {
+        close(fd[0]);
         new_stdin(argv[4]);
         conv_out(fd[1]);
         execlp(argv[1], argv[1],  NULL);
         exit(1);
     } else wait(0);
 
-    if(!fork()) {
+    if(!(pid = fork())) {
+        close(fd[1]);
         conv_in(fd[0]);
         execlp(argv[2], argv[2], NULL);
         error = 0;
         exit(1);
-    } else wait(0);
-    
-    if(error) {
+    } else waitpid(pid, &status, 0);
+    //printf("%d\n", WEXITSTATUS(status)); 
+    if(!WEXITSTATUS(status)) {
         if(!fork()) {
+            close(fd[1]);
             conv_in(fd[0]);
             execlp(argv[3], argv[3], NULL);
             exit(1);
