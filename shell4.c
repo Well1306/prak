@@ -378,7 +378,7 @@ int main() {
                 signal(SIGCHLD, SIG_DFL);
                 break;
             }
-            printf("next %d\n", nextcommand);
+            //printf("next %d\n", nextcommand);
             if(nextcommand) {
                 if(mas[i][0]) {
                     if(!strcmp(mas[i][0], "exit")) {
