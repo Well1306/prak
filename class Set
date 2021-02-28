@@ -1,0 +1,304 @@
+#include <iostream>
+//#include <cstring>
+using namespace std;
+
+class set
+{
+    private:
+        int size;
+        int* array;
+    public:
+        set() {size = 0; array = NULL;};
+        set(int n) {size = n; array = new int[n];}
+        set(const set &s){
+            size = s.getsize();
+            array = new int[size];
+            for(int i = 0; i < size; ++i){
+                array[i] = s.getn(i);
+            }
+        }
+
+        const int getsize() const {return size;}
+        const int getn(const int n) const {
+            if(n < size) return array[n];
+            else {
+                cerr << "getn error!" << endl;
+                return 0;
+            }
+        }
+        const bool findn(const int n) const {
+            for(int i = 0; i < size; ++i) if(n == array[i]) return true;
+            return false;
+        }
+
+        set& add(const int a){
+            bool b = false;
+            for(int i = 0; i < size; ++i){
+                b = a == array[i];
+                if(b) break;
+            }
+            if(!b){
+                size++;
+                int* arr = new int[size];
+                for(int i = 0; i < size - 1; ++i) {arr[i] = array[i];}
+                arr[size - 1] = a;
+                delete[] array;
+                array = arr;
+            }
+            return *this;
+        };
+        set& del(const int a){
+            bool b = false;
+            for(int i = 0; i < size; ++i){
+                b = a == array[i];
+                if(b) break;
+            }
+            if(b){
+                size--;
+                int* arr = new int[size];
+                int j = 0;
+                for(int i = 0; i < size + 1; ++i){
+                    if(array[i] != a) arr[j++] = array[i];
+                }
+                delete[] array;
+                array = arr;
+            }
+            return *this;
+        }
+        friend set operator+(const set &s1, const set &s2);
+        friend set operator-(const set &s1, const set &s2);
+        friend set operator*(const set &s1, const set &s2);
+        friend ostream& operator<<(ostream& k, const set& s);
+        set& operator=(set s){
+            if(array) delete[] array;
+            size = s.getsize();
+            array = new int[size];
+            for(int i = 0; i < size; ++i){
+                array[i] = s.getn(i);
+            }
+            return *this;
+        }
+
+        ~set() {
+            if(array) delete[] array;
+            array = NULL;
+        }
+};
+
+set operator+(const set &s1, const set &s2){
+    set s;
+    for(int i = 0; i < s1.getsize(); ++i){
+        s.add(s1.getn(i));
+    }
+    for(int i = 0; i < s2.getsize(); ++i){
+        s.add(s2.getn(i));
+    }
+    return s;
+}
+
+set operator-(const set &s1, const set &s2){
+    set s;
+    for(int i = 0; i < s1.getsize(); ++i){
+        s.add(s1.getn(i));
+    }
+    for(int i = 0; i < s2.getsize(); i++){
+        s.del(s2.getn(i));
+    }
+    return s;
+}
+
+set operator*(const set &s1, const set &s2){
+    set s;
+    int n;
+    for(int i = 0; i < s1.getsize(); ++i){
+        n = s1.getn(i);
+        if(s2.findn(n)) s.add(s1.getn(i));
+    }
+    return s;
+}
+
+ostream& operator<<(ostream &k, const set& s){
+    if(s.getsize()){
+        for(int i = 0; i < s.getsize() - 1; ++i){
+            k << s.getn(i) << ' ';
+        }
+        k << s.getn(s.getsize() - 1);
+    }
+    else k << "Set is empty!" << endl;
+    return k;
+}
+
+int main()
+{
+    string s;
+    int n;
+    //cout << n << endl;
+    set s1;
+    set s2;
+    cout << "Введите элементы первого множества через пробел, после последнего элемента введите какой-нибудь текст." << endl;
+    do{
+        cin >> s;
+        int t = s.find_first_not_of("+-1234567890");
+        if(t == string::npos){
+            n = stoi(s);
+            s1.add(n);
+        }
+        else break;
+    }while(1);
+    cout << "set1 -> " << s1 << endl;
+    cout << "Введите элементы второго множества через пробел, после последнего элемента введите какой-нибудь текст." << endl;
+    do{
+        cin >> s;
+        int t = s.find_first_not_of("+-1234567890");
+        if(t == string::npos){
+            n = stoi(s);
+            s2.add(n);
+        }
+        else break;
+    }while(1);
+    cout << "set2 -> " << s2 << endl;
+    do{
+        cout << "Выберите действие:" << endl;
+        cout << "1 -> найти объединение множеств" << endl;
+        cout << "2 -> найти пересечение множеств" << endl;
+        cout << "3 -> найти разность множеств" << endl;
+        cout << "4 -> добавить элемент в множество" << endl;
+        cout << "5 -> удалить элемент из множества" << endl;
+        cout << "exit - выход" << endl;
+        cin >> s;
+        if(s == "exit") return 0;
+        int t = s.find_first_not_of("12345");
+        if(t == string::npos){
+            n = stoi(s);
+            switch(n){
+                case 1:
+                {
+                    cout << "set1 + set2 -> " << s1 + s2 << endl;
+                    break;
+                }
+                case 2:
+                {
+                    cout << "set1 * set2 -> " << s1 * s2 << endl;
+                    break;
+                }
+                case 3:
+                {
+                    cout << "        1 -> set1 - set2" << endl;
+                    cout << "        2 -> set2 - set1" << endl;
+                    string str1;
+                    cin >> str1;
+                    int t1 = str1.find_first_not_of("12");
+                    if(t1 == string::npos){
+                        int n1 = stoi(str1);
+                        switch(n1){
+                            case 1:
+                                cout << "set1 - set2 -> " << s1 - s2 << endl;
+                                break;
+                            case 2:
+                                cout << "set2 - set1 -> " << s2 - s1 << endl;
+                                break;
+                        }
+                    }
+                    break;
+                }
+                case 4:
+                {
+                    cout << "1 -> в первое множество" << endl;
+                    cout << "2 -> во второе множество" << endl;
+                    string str1;
+                    cin >> str1;
+                    int t2 = str1.find_first_not_of("12");
+                    if(t2 == string::npos){
+                        int n1 = stoi(str1);
+                        switch(n1){
+                            case 1:
+                            {
+                                string str2;
+                                cout << "Введите числа, которые нужно добавить в первое множество."  << endl;
+                                cout << "После последнего числа введите какой-нибудь текст" << endl;
+                                do{
+                                    cin >> str2;
+                                    int t3 = str2.find_first_not_of("+-1234567890");
+                                    if(t3 == string::npos){
+                                        n = stoi(str2);
+                                        s1.add(n);
+                                    }
+                                    else break;
+                                }while(1);
+                                cout << "set1 -> " << s1 << endl;
+                                break;
+                            }
+                            case 2:
+                            {
+                                string str2;
+                                cout << "Введите числа, которые нужно добавить во второе множество."  << endl;
+                                cout << "После последнего числа введите какой-нибудь текст" << endl;
+                                do{
+                                    cin >> str2;
+                                    int t4 = str2.find_first_not_of("+-1234567890");
+                                    if(t4 == string::npos){
+                                        n = stoi(str2);
+                                        s2.add(n);
+                                    }
+                                    else break;
+                                }while(1);
+                                cout << "set2 -> " << s2 << endl;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 5:
+                {
+                    cout << "1 -> из первого множества" << endl;
+                    cout << "2 -> из второго множества" << endl;
+                    string str1;
+                    cin >> str1;
+                    int t2 = str1.find_first_not_of("12");
+                    if(t2 == string::npos){
+                        int n1 = stoi(str1);
+                        switch(n1){
+                            case 1:
+                            {
+                                string str2;
+                                cout << "Введите числа, которые нужно удалить из первого множества."  << endl;
+                                cout << "После последнего числа введите какой-нибудь текст" << endl;
+                                do{
+                                    cin >> str2;
+                                    int t3 = str2.find_first_not_of("1234567890");
+                                    if(t3 == string::npos){
+                                        n = stoi(str2);
+                                        s1.del(n);
+                                    }
+                                    else break;
+                                }while(1);
+                                cout << "set1 -> " << s1 << endl;
+                                break;
+                            }
+                            case 2:
+                            {
+                                string str2;
+                                cout << "Введите числа, которые нужно удалить из второго множества."  << endl;
+                                cout << "После последнего числа введите какой-нибудь текст" << endl;
+                                do{
+                                    cin >> str2;
+                                    int t4 = str2.find_first_not_of("1234567890");
+                                    if(t4 == string::npos){
+                                        n = stoi(str2);
+                                        s2.del(n);
+                                    }
+                                    else break;
+                                }while(1);
+                                cout << "set2 -> " << s2 << endl;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }while(1);
+    return 0;
+}
