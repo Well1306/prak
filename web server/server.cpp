@@ -104,10 +104,8 @@ public:
         http_uri = u;
         s.erase(0, pos + 1);
 
-        std::cout << "!!" << s << std::endl;
         std::string a = "HTTP/";
         protocol = s.substr(a.length(), 3);
-        std::cout << "!!" << protocol << "!!" << std::endl;
         if((protocol != "1.1") && (protocol != "1.0")) { 
             BadProtocol p(request);
             throw p;
