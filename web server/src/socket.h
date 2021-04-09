@@ -17,6 +17,9 @@ private:
 public:
     FatalError();
     FatalError(const std::string err);
+
+    std::string GetErr();
+    
     ~FatalError();
 };
 
