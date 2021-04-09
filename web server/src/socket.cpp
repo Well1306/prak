@@ -2,6 +2,7 @@
 
 FatalError::FatalError() {};
 FatalError::FatalError(const std::string err) : s(err) {};
+std::string FatalError::GetErr() { return s; }
 FatalError::~FatalError() {};
 
 Socket::Socket() {};
