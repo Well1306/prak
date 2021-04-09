@@ -64,10 +64,10 @@ public:
     }
     
     friend std::ostream &operator<<(std::ostream &s, URI &u) {
-        s << "way: " << u.way << std::endl;
+        s << "\nway: \t" << u.way << std::endl;
         std::vector<std::string> tmp(u.par);
         while(!tmp.empty()) {
-            s << tmp.front() << std::endl;
+            s << "\t" << tmp.front() << std::endl;
             tmp.erase(tmp.begin());
         }
         return s;
@@ -218,10 +218,15 @@ int main()
             h = receive(clSocket, 0);
             fout << h << std::endl;
             if(!h.empty() && (h != "exit") && (h != "Close Server")) {
-                std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
                 try{ HttpHeader kek(h); kek.print(); }
-                catch(BadMethod m) { std::cout << "BadMethod: " << m.GetErr() << "!!" << std::endl; return 1; }
-                catch(BadProtocol p) { std::cout << "BadProtocol: " << p.GetErr() << std::endl; return 1; }
+                catch(BadMethod m) {
+                    std::cout << "BadMethod: " << m.GetErr() << "!!" << std::endl;
+                    std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
+                }
+                catch(BadProtocol p) {
+                    std::cout << "BadProtocol: " << p.GetErr() << std::endl;
+                    std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
+                }
             }
             if(h == "Close Server") {
                 std::cout << "SERVER: Server closed." << std::endl;
