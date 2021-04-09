@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <vector>
 #include "src/socket.h"
 
 int main() 
@@ -15,27 +16,23 @@ int main()
 
     std::string g;
     while((g != "exit")) {
-        std::cin >> g;
-        char buf[sizeof(g)];
-        strcpy(buf, g.c_str());
-        send(server.GetSock(), buf, sizeof(buf), 0);
-        if(g == "Close") {
-            std::cin >> g;
-            char buf[sizeof(g)];
-            strcpy(buf, g.c_str());
-            send(server.GetSock(), buf, sizeof(buf), 0);
-            if(g == "Server") {
-                std::cout << "Client disconnected." << std::endl;
-                end = 1;
-                break;
-            }
+        std::getline(std::cin, g);
+        std::vector<char> buf(g.begin(), g.end());
+        // std::cout << buf << std::endl;
+        int size = buf.size() * sizeof(buf);
+        send(server.GetSock(), &size, sizeof(int), 0);
+        // std::cout << "***" << size << std::endl;
+        send(server.GetSock(), buf.data(), buf.size(), 0);
+        if(g == "Close Server") {
+            std::cout << "Client disconnected." << std::endl;
+            end = 1;
+            break;
         }
     }
     if((g != "exit") && !end) {
         g = "exit";
-        char buf[sizeof(g)];
-        strcpy(buf, g.c_str());
-        send(server.GetSock(), buf, sizeof(buf), 0);
+        std::vector<char> buf(g.begin(), g.end());
+        send(server.GetSock(), buf.data(), buf.size(), 0);
     }
 
     return 0;
