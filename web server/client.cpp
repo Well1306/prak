@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <vector>
 #include "src/socket.h"
+#include "src/Http.h"
 
 int main() 
 {
