@@ -14,26 +14,15 @@
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
 // GET /index.html HTTP/1.1
 
-std::string receive(int sock, int flags) {
-    int size = 0;
-    recv(sock, &size, sizeof(int), 0);
-    // std::cout << "&&&" << size << std::endl;
-    std::vector<char> tmp;
-    tmp.resize((int) (size / sizeof(std::vector<char>)));
-    recv(sock, &tmp[0], size, flags);
-    std::string res(tmp.begin(), tmp.end());
-    // res += tmp;
-    return res;
-}
-
 int main()
 {
     int end = 0;
     int connect_err = 0;
     std::string msg;
 
-    ServerSocket server(AF_INET, SOCK_STREAM, 0, AF_INET, 1234, htonl(INADDR_LOOPBACK));
-    try { server._bind(); } catch(FatalError e) {
+    SocketAddress saddr(1234);
+    ServerSocket server;
+    try { server._bind(saddr); } catch(FatalError e) {
         std::cerr << "SERVER: Fatal Error!\n";
         return 1;
     };
@@ -41,9 +30,10 @@ int main()
     std::ofstream fout;
     fout.open("log.txt");
     while(1) {
-        ConnectedSocket ClientAddress;
+        SocketAddress caddr;
         server._listen(1);
-        int clSocket = ClientAddress._accept(server.GetSock());
+        int clSocket = server._accept(caddr);
+        ConnectedSocket client(clSocket);
         std::cout << "SERVER: Client " << clSocket << " connected." << std::endl;
         if (clSocket < 0) { 
             connect_err++;
@@ -54,8 +44,9 @@ int main()
         } else connect_err = 0;
         std::string h;
         do {
-            h = receive(clSocket, 0);
-            fout << h << std::endl;
+            client._recv(server.GetSock(), h);
+            std::cout << h << std::endl;
+            if(h.empty()) std::cout << 1;
             if(!h.empty() && (h != "exit") && (h != "Close Server")) {
                 try{ HttpHeader kek(h); kek.print(); }
                 catch(BadMethod m) {
