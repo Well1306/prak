@@ -14,8 +14,8 @@ endif
 
 all: clean prog
 
-prog: server.o socket.o
-	$(CXX) server.o socket.o -o prog
+prog: server.o socket.o Http.o
+	$(CXX) server.o socket.o Http.o -o prog
 
 server.o:
 	$(CXX) $(CXXFLAGS) ../server.cpp
@@ -23,5 +23,8 @@ server.o:
 socket.o:
 	$(CXX) $(CXXFLAGS) ../src/socket.cpp
 
+Http.o:
+	$(CXX) $(CXXFLAGS) ../src/Http.cpp
+
 clean:
-	rm -f server.o socket.o prog
+	rm -f server.o socket.o Http.o prog
