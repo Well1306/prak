@@ -5,54 +5,62 @@ FatalError::FatalError(const std::string err) : s(err) {};
 std::string FatalError::GetErr() { return s; }
 FatalError::~FatalError() {};
 
-Socket::Socket() {};
-Socket::Socket(int d, int type, int protocol, int f, int p, int a) {
-    sock = socket(d, type, protocol);
-    sock_struct.sin_family = f;
-    sock_struct.sin_port = p;
-    sock_struct.sin_addr.s_addr = a;
-}; 
+SocketAddress::SocketAddress(short port) {
+    saddr.sin_family = AF_INET;
+    saddr.sin_port = port;
+    saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+}
 
-ServerSocket server(AF_INET, SOCK_STREAM, 0, AF_INET, 1234, htonl(INADDR_LOOPBACK));
-
-int Socket::len() { return sizeof(sock_struct); }
-
-ServerSocket::ServerSocket() {};
-ServerSocket::ServerSocket(int d, int type, int protocol, int f, int p, int a) : Socket(d, type, protocol, f, p, a) {};
-ServerSocket::~ServerSocket() {};
-
-int ServerSocket::GetSock() { return sock; }
-
-int ServerSocket::_bind() {
+int ServerSocket::_bind(const SocketAddress& addr) {
     int k;
-    if((k = bind(sock, (struct sockaddr *) &sock_struct, Socket::len())) < 0) { 
+    if((k = bind(sock, addr.GetAddr(), addr.GetLen())) < 0) { 
         FatalError e("bind");
         throw e; 
     }
     return k;
 }
+
+int ServerSocket::_accept(SocketAddress& addr) {
+    socklen_t k = addr.GetLen();
+    return accept(sock, addr.GetAddr(), &k);
+}
+
 int ServerSocket::_listen(int count) {
     return listen(sock, count);
 }
-int ServerSocket::_accept(int v) { return 0; }
-int ServerSocket::_connect() { return connect(sock, (struct sockaddr *) &sock_struct, Socket::len()); }
 
-ConnectedSocket::ConnectedSocket() {};
-
-int ConnectedSocket::_bind() { return 0; }
-int ConnectedSocket::_listen(int count) { return 0; }
-int ConnectedSocket::_accept(int v) {
-    socklen_t k = Socket::len();
-    return accept(v, (struct sockaddr *) &sock_struct, &k);
+int ConnectedSocket::_connect(const SocketAddress& saddr) {
+    return connect(sock, saddr.GetAddr(), saddr.GetLen());
 }
-int ConnectedSocket::_connect() { return 0; }
 
-ClientSocket::ClientSocket() {};
-ClientSocket::ClientSocket(int d, int type, int protocol, int f, int p, int a) : Socket(d, type, protocol, f, p, a) {}
 
-int ClientSocket::_bind() { return 0; }
-int ClientSocket::_listen(int count) { return 0; }
-int ClientSocket::_accept(int v) { return 0; }
-int ClientSocket::_connect() {
-    return connect(sock, (struct sockaddr *) &sock_struct, Socket::len());
+int ConnectedSocket::_send(const std::vector<char>& request) {
+    int size = request.size() * sizeof(request);
+    if(send(sock, &size, sizeof(int), 0) == -1) return -1;
+    return send(sock, request.data(), request.size(), 0);
+}
+
+int ConnectedSocket::_send(const std::string& request) {
+    std::vector<char> buf(request.begin(), request.end());
+    return _send(buf);
+}
+
+int ConnectedSocket::_recv(std::vector<char>& result) {
+    int size = 0;
+    recv(sock, &size, sizeof(int), 0);
+    result.clear();
+    result.resize((int) (size / sizeof(std::vector<char>)));
+    return recv(sock, &result[0], size, 0);
+}
+
+int ConnectedSocket::_recv(std::string& result) {
+    int size = 0;
+    recv(sock, &size, sizeof(int), 0);
+    std::vector<char> tmp;
+    tmp.resize((int) (size / sizeof(std::vector<char>)));
+    int res = recv(sock, &tmp[0], size, 0);
+    std::string g(tmp.begin(), tmp.end());
+    result = g;
+    g.clear();
+    return res;
 }
