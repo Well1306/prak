@@ -13,6 +13,8 @@ Socket::Socket(int d, int type, int protocol, int f, int p, int a) {
     sock_struct.sin_addr.s_addr = a;
 }; 
 
+ServerSocket server(AF_INET, SOCK_STREAM, 0, AF_INET, 1234, htonl(INADDR_LOOPBACK));
+
 int Socket::len() { return sizeof(sock_struct); }
 
 ServerSocket::ServerSocket() {};
