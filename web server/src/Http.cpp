@@ -26,7 +26,7 @@ URI::~URI() {
     par.clear();
 }
 
-HttpHeader::HttpHeader(std::string request) {
+HttpRequest::HttpRequest(std::string request) {
     // std::cout << "!!!" << request << std::endl;
     std::string s = request;
     int pos = s.find(" ");
@@ -36,7 +36,6 @@ HttpHeader::HttpHeader(std::string request) {
         throw m;
     }
     s.erase(0, pos + 1);
-
 
     pos = s.find(" ");
     std::string t = s.substr(0, pos); 
@@ -50,7 +49,34 @@ HttpHeader::HttpHeader(std::string request) {
         BadProtocol p(request);
         throw p;
     }
+
+    headers.clear();
+    pos = s.find("\n");
+    s.erase(0, pos + 1);
+    pos = s.find("\n");
+    while(pos != (int) s.rfind("\n")) {
+        headers.push_back(s.substr(0, pos));
+        s.erase(0, pos + 1);
+        pos = s.find("\n");
+        // std::cout << pos << ',' << s.rfind("\n") << std::endl;
+    }
 }
-void HttpHeader::print() {
+void HttpRequest::print() {
     std::cout << "method: " << method << std::endl << "uri: " << http_uri << "prot: " << protocol << std::endl;
+    while(!headers.empty()) {
+        std::cout << headers.front() << std::endl;
+        headers.erase(headers.begin());
+    }
 }
+
+const std::string Date::GMtime() const {
+        struct tm *ptr;
+        time_t a;
+        a = time(NULL);
+        ptr = gmtime(&a);
+        std::string t = asctime(ptr);
+        t = t.substr(0, t.length() - 1);
+        t += " GMT\n";
+        t.insert(3, 1, ',');
+        return t;
+    }
