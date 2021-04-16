@@ -25,7 +25,6 @@ class BadMethod : public BadHttpHeader
 public:
     BadMethod(std::string b) : BadHttpHeader(b) {}
 
-    // std::string GetErr() { return m; }
 };
 
 class BadProtocol : public BadHttpHeader
@@ -33,7 +32,6 @@ class BadProtocol : public BadHttpHeader
 public:
     BadProtocol(std::string b) : BadHttpHeader(b) {}
 
-    // std::string GetErr() { return m; }
 };
 
 class URI
@@ -58,76 +56,95 @@ public:
     ~URI();
 };
 
-class HttpHeader
+class HttpRequest
 {
 protected:
     std::string method;
     URI http_uri;
     std::string protocol;
+    std::vector<std::string> headers;
 public:
-    HttpHeader(std::string request);
+    HttpRequest(std::string request);
 
     void print();
-    std::string GET(std::string request) { return "501 Not Implemented"; }
+    virtual std::string GET(std::string request) { return "501 Not Implemented"; }
 };
 
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
 // GET /index.html HTTP/1.1
 
+class HttpHeader
+{
+protected:
+    std::string header;
+    std::string value;
+public:
+    HttpHeader(std::string s) {
+        int pos = s.find(':');
+        header = s.substr(0, pos);
+        s.erase(0, pos + 1);
+        value = s;
+    }
+    HttpHeader() {}
+
+    void set_value(std::string v) { value = v; }
+};
+
 class Date : public HttpHeader
 {
 public:
-
+    Date() : HttpHeader("Date") {}
+    const std::string GMtime() const;
 };
 
 class Host : public HttpHeader
 {
 public:
-  
+    Host() : HttpHeader("Host") {}
 };
 
 
 class Refer : public HttpHeader
 {
 public:
-  
+    Refer() : HttpHeader("Refer") {}
 };
 
 class UserAgent : public HttpHeader
 {
 public:
-  
+    UserAgent() : HttpHeader("User-Agent") {}
 };
 
 class Server : public HttpHeader
 {
 public:
-  
+    Server() : HttpHeader("Server") {}
 };
 
 class ConnectLenght : public HttpHeader
 {
 public:
-  
+    ConnectLenght() : HttpHeader("Connect-Lenght") {}
 };
 
 class ConnectType : public HttpHeader
 {
 public:
-  
+    ConnectType() : HttpHeader("Connect-Type") {}
 };
 
 class Allow : public HttpHeader
 {
 public:
-  
+    Allow() : HttpHeader("Allow") {}
 };
 
 class LastModified : public HttpHeader
 {
 public:
-  
+    LastModified() : HttpHeader("Last-Modified") {}
 };
 
 #endif //HTTP_H
