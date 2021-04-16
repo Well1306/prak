@@ -11,7 +11,6 @@
 #include "src/Http.h"
 
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
-// GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
 // GET /index.html HTTP/1.1
 
 int main()
@@ -44,11 +43,11 @@ int main()
         } else connect_err = 0;
         std::string h;
         do {
-            client._recv(server.GetSock(), h);
+            client._recv(h);
             std::cout << h << std::endl;
             if(h.empty()) std::cout << 1;
-            if(!h.empty() && (h != "exit") && (h != "Close Server")) {
-                try{ HttpHeader kek(h); kek.print(); }
+            if(!h.empty() && ((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos))) {
+                try{ HttpRequest kek(h); kek.print(); }
                 catch(BadMethod m) {
                     std::cout << "BadMethod: " << m.GetErr() << "!!" << std::endl;
                     std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
@@ -58,14 +57,14 @@ int main()
                     std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
                 }
             }
-            if(h == "Close Server") {
+            if(h.find("Close Server") != std::string::npos) {
                 std::cout << "SERVER: Server closed." << std::endl;
                 end = 1;
                 break;
             }
             // if(k > 0) std::cout << msg << std::endl;
-        } while((h != "exit") && (h != "Close Server"));
-        if(h == "exit") std::cout << "SERVER: Client " << clSocket << " disconnected." << std::endl;
+        } while((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos));
+        if(h.find("exit") != std::string::npos) std::cout << "SERVER: Client " << clSocket << " disconnected." << std::endl;
         if(end) break;
     }
     fout.close();
