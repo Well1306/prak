@@ -1,4 +1,5 @@
 #include "socket.h"
+#include "Http.h"
 
 FatalError::FatalError() {};
 FatalError::FatalError(const std::string err) : s(err) {};
@@ -7,7 +8,7 @@ FatalError::~FatalError() {};
 
 SocketAddress::SocketAddress(short port) {
     saddr.sin_family = AF_INET;
-    saddr.sin_port = port;
+    saddr.sin_port = htons(port);
     saddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 }
 
@@ -45,6 +46,23 @@ int ConnectedSocket::_send(const std::string& request) {
     return _send(buf);
 }
 
+int ConnectedSocket::_send(const HttpResponse& request) {
+    std::string h = request.to_string();
+    return _send(h);
+    // int res = send(sock, request.GetCode(), sizeof(int), 0);
+    // std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << _send(request.GetProtocol()) << std::endl;
+    // res += _send(request.GetExp());
+    // std::vector<std::string> tmp = request.GetHeaders();
+    // int size = tmp.size();
+    // std::cout << "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" << size << std::endl;
+    // res += send(sock, &size, sizeof(int), 0);
+    // while(!tmp.empty()) {
+    //     res += _send(tmp.front());
+    //     tmp.erase(tmp.begin());
+    // }
+    // return res;
+}
+
 int ConnectedSocket::_recv(std::vector<char>& result) {
     int size = 0;
     recv(sock, &size, sizeof(int), 0);
@@ -63,4 +81,33 @@ int ConnectedSocket::_recv(std::string& result) {
     result = g;
     g.clear();
     return res;
+}
+
+int ConnectedSocket::_recv(HttpResponse& result) {
+    return 0;
+    // int res = 0;
+    // int c;
+    // res = recv(sock, &c, sizeof(int), 0);
+    // result.SetCode(c);
+    // std::cout << "\t\t\t" << c << std::endl;
+    // std::string tmp;
+    // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" <<  _recv(tmp) << std::endl; //protocol
+    // std::cout << "\t\t\t" << tmp << std::endl;
+    // result.SetProtocol(tmp);
+    // tmp.clear();
+    // res += _recv(tmp); //exp
+    // std::cout << "\t\t\t" << tmp << std::endl;
+    // tmp.clear();
+    // result.SetExp(tmp);
+    // tmp.clear();
+    // std::vector<std::string> t;
+    // int k = 0;
+    // std::cout << recv(sock, &k, sizeof(int), 0) << std::endl;
+    // std::cout << "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" << k << std::endl;
+    // for(int i = 0; i < k; ++i) {
+    //     res += _recv(tmp);
+    //     t.push_back(tmp);
+    // }
+    // result.SetHeaders(t);
+    // return res;
 }
