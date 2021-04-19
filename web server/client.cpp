@@ -14,16 +14,21 @@ int end = 0;
 
 int main() 
 {
-    SocketAddress saddr(1234);
+    SocketAddress saddr(1233);
     ConnectedSocket client;
     std::cout << client._connect(saddr) << std::endl;
 
-    std::string g;
+    std::string g,h;
+    HttpResponse result;
     std::getline(std::cin, g, '%');
     while((g.find("exit") == std::string::npos) && !end) {
-        int pos = g.find("\n\n");
-        std::cout << g << std::endl;
+        // std::cout << g << std::endl;
         client._send(g);
+        // std::cout << client._recv(h) << std::endl;
+        // result.print();
+        // std::cout << h.empty() << std::endl;
+        // std::cout << client._recv(h) << std::endl;
+        std::cout << h << std::endl;
         if(g.find("Close Server") != std::string::npos) {
             std::cout << "Client disconnected." << std::endl;
             end = 1;
