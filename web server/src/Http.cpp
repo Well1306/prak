@@ -48,6 +48,8 @@ const std::string GMtime() {
     t = t.substr(0, t.length() - 1);
     t += " GMT\n";
     t.insert(3, 1, ',');
+    int pos = t.find("\n");
+    t.erase(pos, 1);
     return t;
 }
 
