@@ -13,13 +13,16 @@
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
 // GET /index.html HTTP/1.1
 
+
+
 int main()
 {
     int end = 0;
     int connect_err = 0;
-    std::string msg;
+    int stop = 0;
+    std::string name;
 
-    SocketAddress saddr(1234);
+    SocketAddress saddr(1233);
     ServerSocket server;
     try { server._bind(saddr); } catch(FatalError e) {
         std::cerr << "SERVER: Fatal Error!\n";
@@ -44,10 +47,19 @@ int main()
         std::string h;
         do {
             client._recv(h);
-            std::cout << h << std::endl;
-            if(h.empty()) std::cout << 1;
+            // std::cout << h << std::endl;
+            if(h.empty()) stop++;
+            if(stop > 5) { end = 1; break; }
             if(!h.empty() && ((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos))) {
-                try{ HttpRequest kek(h); kek.print(); }
+                try{ 
+                    HttpRequest request(h); 
+                    // request.print(); 
+                    // std::cout << "!!!\n";
+                    HttpResponse response(request);
+                    response.print();
+                    // std::cout << client._send("onij") << std::endl;  
+                    client._send(response);
+                }
                 catch(BadMethod m) {
                     std::cout << "BadMethod: " << m.GetErr() << "!!" << std::endl;
                     std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
