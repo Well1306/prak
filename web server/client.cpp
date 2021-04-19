@@ -27,7 +27,7 @@ int main()
         // std::cout << client._recv(h) << std::endl;
         // result.print();
         // std::cout << h.empty() << std::endl;
-        // std::cout << client._recv(h) << std::endl;
+        client._recv(h);
         std::cout << h << std::endl;
         if(g.find("Close Server") != std::string::npos) {
             std::cout << "Client disconnected." << std::endl;
@@ -35,6 +35,7 @@ int main()
             break;
         }
         std::getline(std::cin, g, '%');
+        if(g.find("\n") == 0) g.erase(0, 1);
     }
     if((g.find("exit") != std::string::npos) || end) {
         g = "exit";
