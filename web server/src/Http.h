@@ -162,6 +162,13 @@ public:
     const std::vector<std::string> GetHeaders() const { return headers; }
     const std::string GetURI() const { return http_uri.GetURI(); }
     void print();
+
+    ~HttpRequest() {
+        method.clear();
+        http_uri.~URI();
+        protocol.clear();
+        headers.clear();
+    }
 };
 
 class HttpResponse
