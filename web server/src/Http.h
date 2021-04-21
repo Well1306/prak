@@ -31,7 +31,6 @@ class BadProtocol : public BadHttpHeader
 {
 public:
     BadProtocol(std::string b) : BadHttpHeader(b) {}
-
 };
 
 class URI
@@ -87,65 +86,6 @@ public:
     HttpHeader() {}
 
     void set_value(std::string v) { value = v; }
-    // friend std::ostream& operator<<(std::ostream& s, HttpHeader& h) {
-    //     s << header << ' ' << value << std::endl;
-    //     return s;
-    // }
-};
-
-class Date : public HttpHeader
-{
-public:
-    Date(std::string s) : HttpHeader(s) {}
-};
-
-class Host : public HttpHeader
-{
-public:
-    Host(std::string s) : HttpHeader(s) {}
-};
-
-
-class Refer : public HttpHeader
-{
-public:
-    Refer(std::string s) : HttpHeader(s) {}
-};
-
-class UserAgent : public HttpHeader
-{
-public:
-    UserAgent(std::string s) : HttpHeader(s) {}
-};
-
-class Server : public HttpHeader
-{
-public:
-    Server(std::string s) : HttpHeader(s) {}
-};
-
-class ConnectLenght : public HttpHeader
-{
-public:
-    ConnectLenght(std::string s) : HttpHeader(s) {}
-};
-
-class ConnectType : public HttpHeader
-{
-public:
-    ConnectType(std::string s) : HttpHeader(s) {}
-};
-
-class Allow : public HttpHeader
-{
-public:
-    Allow(std::string s) : HttpHeader(s) {}
-};
-
-class LastModified : public HttpHeader
-{
-public:
-    LastModified(std::string s) : HttpHeader(s) {}
 };
 
 class HttpRequest
