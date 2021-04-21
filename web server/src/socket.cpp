@@ -35,79 +35,20 @@ int ConnectedSocket::_connect(const SocketAddress& saddr) {
 }
 
 
-int ConnectedSocket::_send(const std::vector<char>& request) {
-    int size = request.size() * sizeof(request);
-    if(send(sock, &size, sizeof(int), 0) == -1) return -1;
-    return send(sock, request.data(), request.size(), 0);
-}
 
-int ConnectedSocket::_send(const std::string& request) {
-    std::vector<char> buf(request.begin(), request.end());
-    return _send(buf);
-}
-
-int ConnectedSocket::_send(const HttpResponse& request) {
-    std::string h = request.to_string();
-    return _send(h);
-    // int res = send(sock, request.GetCode(), sizeof(int), 0);
-    // std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << _send(request.GetProtocol()) << std::endl;
-    // res += _send(request.GetExp());
-    // std::vector<std::string> tmp = request.GetHeaders();
-    // int size = tmp.size();
-    // std::cout << "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" << size << std::endl;
-    // res += send(sock, &size, sizeof(int), 0);
-    // while(!tmp.empty()) {
-    //     res += _send(tmp.front());
-    //     tmp.erase(tmp.begin());
-    // }
-    // return res;
-}
-
-int ConnectedSocket::_recv(std::vector<char>& result) {
-    int size = 0;
-    recv(sock, &size, sizeof(int), 0);
-    result.clear();
-    result.resize((int) (size / sizeof(std::vector<char>)));
-    return recv(sock, &result[0], size, 0);
+int ConnectedSocket::_send(const std::string &request){
+    std::vector<char> tmp(request.begin(), request.end());
+    return send(sock, &tmp[0], request.length(), 0);
 }
 
 int ConnectedSocket::_recv(std::string& result) {
-    int size = 0;
-    recv(sock, &size, sizeof(int), 0);
-    std::vector<char> tmp;
-    tmp.resize((int) (size / sizeof(std::vector<char>)));
-    int res = recv(sock, &tmp[0], size, 0);
-    std::string g(tmp.begin(), tmp.end());
-    result = g;
-    g.clear();
+    std::vector<char> tmp(2048);
+    int res = recv(sock, &tmp[0], 2048, 0);
+    std::vector<char>::iterator it = tmp.begin();
+    std::advance(it, res);
+    std::string s(tmp.begin(), it);
+    result = s;
+    tmp.clear();
     return res;
 }
 
-int ConnectedSocket::_recv(HttpResponse& result) {
-    return 0;
-    // int res = 0;
-    // int c;
-    // res = recv(sock, &c, sizeof(int), 0);
-    // result.SetCode(c);
-    // std::cout << "\t\t\t" << c << std::endl;
-    // std::string tmp;
-    // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" <<  _recv(tmp) << std::endl; //protocol
-    // std::cout << "\t\t\t" << tmp << std::endl;
-    // result.SetProtocol(tmp);
-    // tmp.clear();
-    // res += _recv(tmp); //exp
-    // std::cout << "\t\t\t" << tmp << std::endl;
-    // tmp.clear();
-    // result.SetExp(tmp);
-    // tmp.clear();
-    // std::vector<std::string> t;
-    // int k = 0;
-    // std::cout << recv(sock, &k, sizeof(int), 0) << std::endl;
-    // std::cout << "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" << k << std::endl;
-    // for(int i = 0; i < k; ++i) {
-    //     res += _recv(tmp);
-    //     t.push_back(tmp);
-    // }
-    // result.SetHeaders(t);
-    // return res;
-}
