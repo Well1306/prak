@@ -49,11 +49,30 @@ public:
 
 class ServerSocket : public Socket
 {
+private:
+    short port;
+    std::string name;
+    std::string log;
 public:
-    ServerSocket() : Socket() {};
+    ServerSocket(short p, std::string n, std::string l) : Socket(), port(p), name(n), log(l) {};
     int _bind(const SocketAddress&);
-    int _accept(SocketAddress&);
-    int _listen(int);
+    int _accept(SocketAddress& addr) {
+        socklen_t k = addr.GetLen();
+        return accept(sock, addr.GetAddr(), &k);
+    }
+    int _listen(int count) {
+        return listen(sock, count);
+    }
+    void work();
+};
+
+class ClientSocket : public Socket {
+private:
+    short port;
+    std::string name;
+public:
+    ClientSocket(short p, std::string n) : Socket(), port(p), name(n) {};
+    void work();
 };
 
 class ConnectedSocket : public Socket
