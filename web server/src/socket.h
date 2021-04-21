@@ -63,12 +63,7 @@ public:
     explicit ConnectedSocket(int s) : Socket(s) {}
     int _connect(const SocketAddress&);
     int _send(const std::string&);
-    int _send(const std::vector<char>&);
-    int _send(const HttpResponse&);
     int _recv(std::string&);
-    int _recv(std::vector<char>&);
-    int _recv(HttpResponse&);
-    
 };
 
 #endif //SOCKET_H
