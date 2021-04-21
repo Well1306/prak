@@ -66,7 +66,7 @@ enum headers {
     REFERER,
     USERAGENT,
     SERVER,
-    CONTENTLENGHT,
+    CONTENTLENGTH,
     CONTENTTYPE,
     ALLOW,
     LASTMODIFIED,
@@ -101,6 +101,9 @@ public:
     const std::string GetProt() const { return protocol; }
     const std::vector<std::string> GetHeaders() const { return headers; }
     const std::string GetURI() const { return http_uri.GetURI(); }
+    bool empty() {
+        return headers.empty();
+    }
     void print();
 
     ~HttpRequest() {
@@ -114,18 +117,23 @@ public:
 class HttpResponse
 {
 private:
+    short port;
+    std::string name;
     std::string protocol;
     int code;
     std::string exp;
     std::vector<std::string> headers;
 public:
     HttpResponse() {}
-    HttpResponse(HttpRequest& r);
+    HttpResponse(HttpRequest& r, short p, std::string n, std::string *lm);
 
     void SetProtocol(std::string p) { protocol = p; }
     void SetCode(int c) { code = c; }
     void SetExp(std::string e) { exp = e; }
     void SetHeaders(std::vector<std::string> h){ headers = h; }
+    bool empty() {
+        return headers.empty();
+    }
     void print();
     const std::string to_string() const;
 
