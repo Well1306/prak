@@ -126,7 +126,7 @@ HttpResponse::HttpResponse(HttpRequest& r) {
             headers.push_back("Date: " + GMtime());
             break;
         case HOST:
-            headers.push_back("Host: " + value);
+            headers.push_back("Host: 127.0.0.1:1234");
             break;
         case REFERER:
             headers.push_back("Referer: " + r.GetURI());
