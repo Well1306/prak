@@ -1,176 +1,165 @@
-#include "Http.h"
+#ifndef HTTP_H
+#define HTTP_H
 
-const std::string GMtime() {
-    struct tm *ptr;
-    time_t a;
-    a = time(NULL);
-    ptr = gmtime(&a);
-    std::string t = asctime(ptr);
-    t = t.substr(0, t.length() - 1);
-    t += " GMT\n";
-    t.insert(3, 1, ',');
-    int pos = t.find("\n");
-    t.erase(pos, 1);
-    return t;
-}
+#include <iostream>
+#include <fstream>
+#include <stdio.h>
+#include <cstring>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <vector>
 
-URI::URI() {}
-URI::URI(std::string uri) {
-    std::string s = uri;
-    size_t pos = s.find("?");
-    way = s.substr(0, pos);
-    if(pos != std::string::npos) {
-        s.erase(0, pos + 1);
-        pos = s.find("&");
-        while(pos != std::string::npos) {
-            std::string p = s.substr(0, pos + 1);
-            par.push_back(p);
-            s.erase(0, pos + 1);
-            pos = s.find("&");
-        }
-    }
-}
-URI &URI::operator=(const URI &u) {
-    way = u.way;
-    par = u.par;
-    return *this;
-}
-URI::~URI() {
-    way.clear();
-    par.clear();
-}
+class BadHttpHeader
+{
+private:
+    std::string m;
+public:
+    BadHttpHeader(std::string b) : m(b) {}
+    std::string GetErr() { return m; }
+};
 
-const headers GetHeader(std::string s) {
-    if(s == "Date") return DATE;
-    else if(s == "Host") return HOST;
-    else if(s == "Referer") return REFERER;
-    else if(s == "User-agent") return USERAGENT;
-    else if(s == "Server") return SERVER;
-    else if(s == "Content-length") return CONTENTLENGTH;
-    else if(s == "Content-type") return CONTENTTYPE;
-    else if(s == "Allow") return ALLOW;
-    else if(s == "Last-modified") return LASTMODIFIED;
-    else return ERROR;
-}
+class BadMethod : public BadHttpHeader
+{
+public:
+    BadMethod(std::string b) : BadHttpHeader(b) {}
 
-HttpHeader::HttpHeader(std::string s) {
-    int pos = s.find(':');
-    header = s.substr(0, pos);
-    s.erase(0, pos + 1);
-    value = s;
-}
+};
 
-HttpRequest::HttpRequest(std::string request) {
-    std::string s = request;
-    int pos = s.find(" ");
-    method = s.substr(0, pos);
-    if((method != "GET") && (method != "HEAD")) { 
-        BadMethod m(request);
-        throw m;
-    }
-    s.erase(0, pos + 1);
+class BadProtocol : public BadHttpHeader
+{
+public:
+    BadProtocol(std::string b) : BadHttpHeader(b) {}
+};
 
-    pos = s.find(" ");
-    std::string t = s.substr(0, pos); 
-    URI u = t;
-    http_uri = u;
-    s.erase(0, pos + 1);
+class File
+{
+private:
+    std::string way;
+    int fd;
+    int mode;
+public:
+    File() {};
+    File(std::string w, int m) : way(w), mode(m) { fd = open(w.c_str(), m); }
+    const int length() const;
+    const int Getfd() const { return fd; }
+    ~File() { close(fd); }
+};
 
-    std::string a = "HTTP/";
-    protocol = s.substr(a.length(), 3);
-    if((protocol != "1.1") && (protocol != "1.0")) { 
-        BadProtocol p(request);
-        throw p;
-    }
-
-    headers.clear();
-    pos = s.find("\n");
-    s.erase(0, pos + 1);
-    pos = s.find("\n");
-    while(pos != (int) s.rfind("\n")) { 
-        headers.push_back(s.substr(0, pos));
-        s.erase(0, pos + 1);
-        pos = s.find("\n");
-    }
-}
-void HttpRequest::print() {
-    std::cout << "method: " << method << std::endl << "uri: " << http_uri << "prot: " << protocol << std::endl;
-    std::vector<std::string> tmp = headers;
-    while(!tmp.empty()) {
-        std::cout << tmp.front() << std::endl;
-        tmp.erase(tmp.begin());
-    }
-}
-
-HttpResponse::HttpResponse(HttpRequest& r, short p, std::string n, std::string* lm) : port(p), name(n) {
-    protocol = "HTTP/" + r.GetProt();
-    int error = 0;
-    std::vector<std::string> tmp = r.GetHeaders();
-    while(!tmp.empty()) {
-        std::string t = tmp.front();
-        int pos = t.find(":");
-        std::string head = t.substr(0, pos);
-        std::string value = t.substr(pos + 1);
-        tmp.erase(tmp.begin());
-        switch(GetHeader(head))
-        {
-        case DATE:
-            headers.push_back("Date: " + GMtime());
-            break;
-        case HOST:
-            headers.push_back("Host: 127.0.0.1" + std::to_string(port));
-            break;
-        case REFERER:
-            headers.push_back("Referer: " + r.GetURI());
-            break;
-        case USERAGENT:
-            headers.push_back("User-agent: " + value);
-            break;
-        case SERVER:
-            headers.push_back("Server: " + name);
-            break;
-        case CONTENTLENGTH:
-            headers.push_back("Content-length: " + std::to_string(sizeof(r)));
-            break;
-        case CONTENTTYPE:
-            headers.push_back("Content-type: text/html");
-            break;
-        case ALLOW:
-            headers.push_back("Allow: GET, HEAD");
-            break;
-        case LASTMODIFIED:
-            headers.push_back("Last-modified: " + (*lm));
-            *lm = GMtime();
-            break;
-        default: 
-            error++; 
-            break;
-        }
-    }
-    if(error != 0) {
-        code = 404;
-        exp = "Not Found";
-        headers.clear();
-    } else { code = 200; exp = "OK"; }
-}
-
-const std::string HttpResponse::to_string() const {
-    std::string res = protocol + " " + std::to_string(code) + " " + exp + "\n";
-    std::vector<std::string> tmp = headers;
-    // std::cout << tmp.empty() << std::endl;
-    while(!tmp.empty()) {
-        res += tmp.front() + "\n";
-        tmp.erase(tmp.begin());
-    }
-    return res;
-}
-
-
-void HttpResponse::print() {
-        std::cout << protocol << " " << std::to_string(code) << " " << exp << std::endl;
-        std::vector<std::string> tmp = headers;
+class URI
+{
+private:
+    std::string way;
+    std::vector<std::string> par;
+public:
+    URI();
+    URI(std::string uri);
+    URI &operator=(const URI &u);
+    const std::string GetURI() const { return way; }
+    
+    friend std::ostream &operator<<(std::ostream &s, URI &u) {
+        s << "\nway: \t" << u.way << std::endl;
+        std::vector<std::string> tmp(u.par);
         while(!tmp.empty()) {
-            std::cout << tmp.front() << std::endl;
+            s << "\t" << tmp.front() << std::endl;
             tmp.erase(tmp.begin());
         }
+        return s;
     }
+    ~URI();
+};
+
+// GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
+// GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
+// GET /index.html HTTP/1.1
+
+enum headers {
+    DATE = 0,
+    HOST,
+    REFERER,
+    USERAGENT,
+    SERVER,
+    CONTENTLENGTH,
+    CONTENTTYPE,
+    ALLOW,
+    LASTMODIFIED,
+    ERROR
+};
+
+const headers GetHeader(std::string); 
+const std::string GMtime();
+
+class HttpHeader
+{
+protected:
+    std::string header;
+    std::string value;
+public:
+    HttpHeader(std::string s);
+    HttpHeader() {}
+
+    void set_value(std::string v) { value = v; }
+};
+
+class HttpRequest
+{
+protected:
+    std::string method;
+    URI http_uri;
+    std::string protocol;
+    std::vector<std::string> headers;
+    int h[9];
+public:
+    HttpRequest(std::string request);
+
+    const std::string GetProt() const { return protocol; }
+    const std::vector<std::string> GetHeaders() const { return headers; }
+    const std::string GetURI() const { return http_uri.GetURI(); }
+    const int GetMas(int i) const { return h[i]; } 
+    int Change(int i, int k) { h[i] = k; return h[i]; }
+    bool empty() {
+        return headers.empty();
+    }
+    void print();
+
+    ~HttpRequest() {
+        method.clear();
+        http_uri.~URI();
+        protocol.clear();
+        headers.clear();
+    }
+};
+
+class HttpResponse
+{
+private:
+    short port;
+    std::string name;
+    std::string protocol;
+    int code;
+    std::string exp;
+    std::vector<std::string> headers;
+public:
+    std::ifstream file;
+    HttpResponse() {}
+    HttpResponse(HttpRequest& r, short p, std::string n, std::string *lm);
+
+    void SetProtocol(std::string p) { protocol = p; }
+    void SetCode(int c) { code = c; }
+    void SetExp(std::string e) { exp = e; }
+    void SetHeaders(std::vector<std::string> h){ headers = h; }
+    bool empty() {
+        return headers.empty();
+    }
+    void print();
+    const std::string to_string() const;
+
+    const std::string GetProtocol() const { return protocol; }
+    const int* GetCode() const { return &code; }
+    const std::string GetExp() const { return exp; }
+    const std::vector<std::string> GetHeaders() const { return headers; }
+};
+
+#endif //HTTP_H
