@@ -19,6 +19,24 @@ void getrequest(std::string &g) { //getline(std::cin, g, "\n\n")
     g += "\n\n";
 }
 
+char* to_str(std::ifstream& file, int &l) {
+    int len = 0;
+    file.seekg(0, std::ios::end);
+    len = file.tellg();
+    file.seekg(0, std::ios::beg);
+    char *buf = new char[len];
+    // for(int i = 0; i < len; ++i) {
+    //     file.read(&buf[i], 1);
+    // }
+
+    file.read(buf, len);
+    // buf[len] = '\0';
+    // std::string res(buf);
+    // std::cout  << res << std::endl;
+    // delete[] buf;
+    l = len;
+    return buf;
+}
 
 FatalError::FatalError() {};
 FatalError::FatalError(const std::string err) : s(err) {};
@@ -45,7 +63,6 @@ void ServerSocket::work() {
     int stop = 0;
     int count_req = 0;
     std::string last_mod = GMtime();
-
     SocketAddress saddr(port);
     try { _bind(saddr); } catch(FatalError e) {
         std::cerr << "SERVER: Fatal Error!\n";
@@ -70,9 +87,9 @@ void ServerSocket::work() {
         do {
             h.clear();
             client._recv(h);
-            if(h.empty()) stop++;
+            if(h.empty()) stop = 1;
             else count_req++;
-            if(stop == 1) { end = 1; break; }
+            if(stop == 1) break;
             fout << "Request " << count_req << ":" << std::endl;
             std::string tmp = h;
             fout << tmp.erase(tmp.length() - 1) << std::endl;
@@ -80,21 +97,40 @@ void ServerSocket::work() {
             if(!h.empty() && ((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos))) {
                 try{ 
                     HttpRequest request(h); 
-                    std::cout << request.empty() << std::endl;
                     HttpResponse response(request, port, name, &last_mod);
-                    std::cout << response.empty() << std::endl;
-                    response.print();
-                    client._send(response.to_string());
+                    // response.print();
+                    std::string res = response.to_string();
+                    // std::cout << res;
+                    // client._send(res);
+                    if(*(response.GetCode()) == 200) {
+                        int len2;
+                        int len1 = res.length();
+                        char* buf2 = to_str(response.file, len2);
+                        // send(client.GetSock(), buf, len, 0);
+                        char* buf1 = new char[len1];
+                        buf1 = (char*) res.c_str();
+                        int size = len2 + len1 + 2;
+                        char* buf = new char[size];
+                        memcpy(buf, buf1, len1);
+                        buf[len1] = '\n';
+                        memcpy(buf + len1 + 1, buf2, len2);
+                        buf[len1 + len2 + 1] = '\0';
+                        send(client.GetSock(), buf, size, 0);
+                        std::cout << buf;
+                        // delete[] buf1;
+                        delete[] buf2;
+                        delete[] buf;
+                    } else client._send(res);
                 }
                 catch(BadMethod m) {
                     client._send("Bad method.\n");
                     std::cout << "BadMethod: " << m.GetErr() << "!!" << std::endl;
-                    std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
+                    std::cout << "SERVER: " << "404 Not Found" << std::endl;
                 }
                 catch(BadProtocol p) {
                     client._send("Bad protocol.\n");
                     std::cout << "BadProtocol: " << p.GetErr() << std::endl;
-                    std::cout << "SERVER: " << "501 Not Implemented" << std::endl;
+                    std::cout << "SERVER: " << "404 Not Found" << std::endl;
                 }
             }
             if(h.find("Close Server") != std::string::npos) {
@@ -104,10 +140,16 @@ void ServerSocket::work() {
             }
             // if(k > 0) std::cout << msg << std::endl;
         } while((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos));
-        if(h.find("exit") != std::string::npos) std::cout << "SERVER: Client " << clSocket << " disconnected." << std::endl;
+        if((h.find("exit") != std::string::npos) || stop) { 
+            std::cout << "SERVER: Client " << clSocket << " disconnected." << std::endl;
+            close(clSocket); 
+            stop = 0;
+        }
         if(end) break;
     }
     fout.close();
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
 }
 
 void ClientSocket::work() {
@@ -133,21 +175,44 @@ void ClientSocket::work() {
         }
         getrequest(g);
         if(g.find("\n") == 0) g.erase(0, 1);
+        h.clear();
     }
     if((g.find("exit") != std::string::npos) || end) {
         g = "exit";
         std::vector<char> buf(g.begin(), g.end());
         client._send(g);
+        shutdown(sock, SHUT_RDWR);
+        close(sock);
     }
 }
 
 int ConnectedSocket::_connect(const SocketAddress& saddr) {
     return connect(sock, saddr.GetAddr(), saddr.GetLen());
 }
-int ConnectedSocket::_send(const std::string &request){
-    std::vector<char> tmp(request.begin(), request.end());
-    return send(sock, &tmp[0], request.length(), 0);
+int ConnectedSocket::_send(const std::string &request) {
+    return send(sock, request.c_str(), request.length(), 0);
 }
+// int ConnectedSocket::_send(const File &request) {
+//     int size = request.length();
+//     char buf[size];
+//     int k = 0;
+//     std::cout << 1;
+//     while((k = read(request.Getfd(), buf, size)) > 0) {
+//         std::cout << send(sock, buf, k, 0);
+        
+//     }
+//     return k;
+// }
+int ConnectedSocket::_send(std::ifstream &request) {
+    int len = 0;
+    request.seekg(0, std::ios::end);
+    len = request.tellg();
+    request.seekg(0, std::ios::beg);
+    char buf[len];
+    request.read(buf, len);
+    return send(sock, buf, len, 0);
+}
+
 int ConnectedSocket::_recv(std::string& result) {
     std::vector<char> tmp(2048);
     int res = recv(sock, &tmp[0], 2048, 0);
@@ -155,7 +220,7 @@ int ConnectedSocket::_recv(std::string& result) {
     std::advance(it, res);
     std::string s(tmp.begin(), it);
     result = s;
-    tmp.clear();
+    tmp.clear();   
     return res;
 }
 
