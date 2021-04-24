@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 #include <vector>
 #include "Http.h"
 
@@ -82,6 +83,8 @@ public:
     explicit ConnectedSocket(int s) : Socket(s) {}
     int _connect(const SocketAddress&);
     int _send(const std::string&);
+    // int _send(const File&);
+    int _send(std::ifstream&);
     int _recv(std::string&);
 };
 
