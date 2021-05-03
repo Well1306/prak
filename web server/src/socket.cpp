@@ -1,12 +1,9 @@
 #include "socket.h"
 #include "Http.h"
 
-
 void getrequest(std::string &g) { //getline(std::cin, g, "\n\n")
-    g.clear();
     std::string res;
     char ch;
-    res.clear();
     while(1) {
         getline(std::cin, res);
         g += res;
@@ -25,15 +22,7 @@ char* to_str(std::ifstream& file, int &l) {
     len = file.tellg();
     file.seekg(0, std::ios::beg);
     char *buf = new char[len];
-    // for(int i = 0; i < len; ++i) {
-    //     file.read(&buf[i], 1);
-    // }
-
     file.read(buf, len);
-    // buf[len] = '\0';
-    // std::string res(buf);
-    // std::cout  << res << std::endl;
-    // delete[] buf;
     l = len;
     return buf;
 }
@@ -85,7 +74,6 @@ void ServerSocket::work() {
         } else connect_err = 0;
         std::string h;
         do {
-            h.clear();
             client._recv(h);
             if(h.empty()) stop = 1;
             else count_req++;
@@ -93,20 +81,15 @@ void ServerSocket::work() {
             fout << "Request " << count_req << ":" << std::endl;
             std::string tmp = h;
             fout << tmp.erase(tmp.length() - 1) << std::endl;
-            tmp.clear();
             if(!h.empty() && ((h.find("exit") == std::string::npos) && (h.find("Close Server") == std::string::npos))) {
                 try{ 
                     HttpRequest request(h); 
                     HttpResponse response(request, port, name, &last_mod);
-                    // response.print();
                     std::string res = response.to_string();
-                    // std::cout << res;
-                    // client._send(res);
                     if(*(response.GetCode()) == 200) {
                         int len2;
                         int len1 = res.length();
                         char* buf2 = to_str(response.file, len2);
-                        // send(client.GetSock(), buf, len, 0);
                         char* buf1 = new char[len1];
                         buf1 = (char*) res.c_str();
                         int size = len2 + len1 + 2;
@@ -117,10 +100,12 @@ void ServerSocket::work() {
                         buf[len1 + len2 + 1] = '\0';
                         send(client.GetSock(), buf, size, 0);
                         std::cout << buf;
-                        // delete[] buf1;
                         delete[] buf2;
                         delete[] buf;
-                    } else client._send(res);
+                    } else {
+                        std::cout << res;
+                        client._send(res);
+                    }
                 }
                 catch(BadMethod m) {
                     client._send("Bad method.\n");
@@ -175,7 +160,6 @@ void ClientSocket::work() {
         }
         getrequest(g);
         if(g.find("\n") == 0) g.erase(0, 1);
-        h.clear();
     }
     if((g.find("exit") != std::string::npos) || end) {
         g = "exit";
@@ -220,7 +204,6 @@ int ConnectedSocket::_recv(std::string& result) {
     std::advance(it, res);
     std::string s(tmp.begin(), it);
     result = s;
-    tmp.clear();   
     return res;
 }
 
