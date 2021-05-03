@@ -54,6 +54,7 @@ private:
     short port;
     std::string name;
     std::string log;
+    char** GetEnvp();
 public:
     ServerSocket(short p, std::string n, std::string l) : Socket(), port(p), name(n), log(l) {};
     int _bind(const SocketAddress&);
