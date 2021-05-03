@@ -1,4 +1,7 @@
 #include "Http.h"
+#include <sys/wait.h>
+#include <errno.h>
+
 
 const std::string GMtime() {
     struct tm *ptr;
@@ -27,26 +30,50 @@ URI::URI() {}
 URI::URI(std::string uri) {
     std::string s = uri;
     size_t pos = s.find("?");
+    if(pos != std::string::npos) cgi = 1;
+    else cgi = 0;
     way = s.substr(0, pos);
     if(pos != std::string::npos) {
         s.erase(0, pos + 1);
-        pos = s.find("&");
-        while(pos != std::string::npos) {
-            std::string p = s.substr(0, pos + 1);
+        do {
+            pos = s.find("&");
+            std::string p = s.substr(0, pos);
             par.push_back(p);
             s.erase(0, pos + 1);
-            pos = s.find("&");
-        }
+        } while(pos != std::string::npos);
     }
 }
-URI &URI::operator=(const URI &u) {
-    way = u.way;
-    par = u.par;
-    return *this;
+const std::string URI::GetFile() const {
+    std::string s = way.substr(1, way.length());
+    return s;
 }
-URI::~URI() {
-    way.clear();
-    par.clear();
+void URI::_cgi(int* err) {
+    int fd = open("t.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int status;
+    pid_t pid = fork();
+    if(pid > 0) {
+        wait(&status);
+        if(WIFEXITED(status) && WEXITSTATUS(status) == 0) *err = 0;
+        else *err = 1;
+    }
+    else if(pid == 0) {
+        char* argv[] = { (char*) GetFile().c_str(), NULL };
+        std::vector<std::string> tmp = GetPar();
+        char** envp = new char*[tmp.size() + 1];
+        int i = 0;
+        while(!tmp.empty()) {
+            std::string s = tmp.front();
+            envp[i] = strdup(s.c_str());
+            i++;
+            tmp.erase(tmp.begin());
+        }
+        envp[i] = NULL;
+        dup2(fd, 1);
+        close(fd);
+        execve((char*) GetFile().c_str(), argv, envp);
+        perror("11");
+        exit(1);
+    }
 }
 
 const headers GetHeader(std::string s) {
@@ -81,8 +108,7 @@ HttpRequest::HttpRequest(std::string request) {
 
     pos = s.find(" ");
     std::string t = s.substr(0, pos); 
-    URI u = t;
-    http_uri = u;
+    http_uri = t;
     s.erase(0, pos + 1);
 
     std::string a = "HTTP/";
@@ -93,8 +119,6 @@ HttpRequest::HttpRequest(std::string request) {
     }
 
 
-    for(int i = 0; i < 8; ++i) 
-        h[i] = 0;
     headers.clear();
     pos = s.find("\n");
     s.erase(0, pos + 1);
@@ -104,9 +128,6 @@ HttpRequest::HttpRequest(std::string request) {
         headers.push_back(tmp);
         s.erase(0, pos + 1);
         pos = s.find("\n");
-        for(int i = 0; i < 8; ++i) {
-            if((int) GetHeader(tmp) == h[i]) h[i] = 1;
-        }
     }
     // std::cout << h << std::endl;
 }
@@ -146,6 +167,7 @@ HttpResponse::HttpResponse(HttpRequest& r, short p, std::string n, std::string* 
     headers.push_back("Allow: GET, HEAD");
     headers.push_back("Last-modified: " + (*lm));
     *lm = GMtime();
+    if(r.IsCGI() == 1) r._GetURI()._cgi(&err404);
     if(error != 0) {
         code = 501;
         exp = "Not Implemented";
