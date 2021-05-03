@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <cstring>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -54,21 +55,25 @@ private:
     std::string way;
     std::vector<std::string> par;
 public:
+    int cgi;
     URI();
     URI(std::string uri);
-    URI &operator=(const URI &u);
+    // URI &operator=(const URI &u);
     const std::string GetURI() const { return way; }
+    const std::string GetFile() const;
+    const std::vector<std::string> GetPar() const { return par; }
+    void _cgi(int*);
     
     friend std::ostream &operator<<(std::ostream &s, URI &u) {
         s << "\nway: \t" << u.way << std::endl;
         std::vector<std::string> tmp(u.par);
         while(!tmp.empty()) {
-            s << "\t" << tmp.front() << std::endl;
+            s << "\t" << "!" << tmp.front() << "!" << std::endl;
             tmp.erase(tmp.begin());
         }
         return s;
     }
-    ~URI();
+    ~URI() {};
 };
 
 // GET cgi-bin/testcgi?name=igor&surname=golovin&mail=igolovin HTTP/1.1
@@ -110,26 +115,20 @@ protected:
     URI http_uri;
     std::string protocol;
     std::vector<std::string> headers;
-    int h[9];
 public:
     HttpRequest(std::string request);
 
     const std::string GetProt() const { return protocol; }
     const std::vector<std::string> GetHeaders() const { return headers; }
     const std::string GetURI() const { return http_uri.GetURI(); }
-    const int GetMas(int i) const { return h[i]; } 
-    int Change(int i, int k) { h[i] = k; return h[i]; }
+    URI _GetURI() { return http_uri; }
+    const int IsCGI() const { return http_uri.cgi; }
     bool empty() {
         return headers.empty();
     }
     void print();
 
-    ~HttpRequest() {
-        method.clear();
-        http_uri.~URI();
-        protocol.clear();
-        headers.clear();
-    }
+    ~HttpRequest() {}
 };
 
 class HttpResponse
