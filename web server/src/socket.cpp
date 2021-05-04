@@ -198,7 +198,6 @@ int ConnectedSocket::_send(HttpResponse& r) {
     buf[len1 + r.GetCl() + 1] = '\0';
     int k = send(sock, buf, size, 0);
     std::cout << buf;
-    // delete[] buf2;
-    // delete[] buf;
+    delete[] buf;
     return k;
 }
