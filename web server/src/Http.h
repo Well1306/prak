@@ -62,7 +62,7 @@ public:
     const std::string GetURI() const { return way; }
     const std::string GetFile() const;
     const std::vector<std::string> GetPar() const { return par; }
-    void _cgi(int*);
+    char* _cgi(int*, int*);
     
     friend std::ostream &operator<<(std::ostream &s, URI &u) {
         s << "\nway: \t" << u.way << std::endl;
@@ -140,8 +140,10 @@ private:
     int code;
     std::string exp;
     std::vector<std::string> headers;
+    int content_length;
 public:
     std::ifstream file;
+    char* body;
     HttpResponse() {}
     HttpResponse(HttpRequest& r, short p, std::string n, std::string *lm);
 
@@ -158,7 +160,10 @@ public:
     const std::string GetProtocol() const { return protocol; }
     const int* GetCode() const { return &code; }
     const std::string GetExp() const { return exp; }
+    const int GetCl() const { return content_length; }
     const std::vector<std::string> GetHeaders() const { return headers; }
+
+    ~HttpResponse() { delete[] body; }
 };
 
 #endif //HTTP_H
