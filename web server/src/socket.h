@@ -13,6 +13,8 @@
 #include <vector>
 #include "Http.h"
 
+char* to_str(std::ifstream& file, int &l);
+
 class FatalError
 {
 private:
@@ -84,9 +86,9 @@ public:
     explicit ConnectedSocket(int s) : Socket(s) {}
     int _connect(const SocketAddress&);
     int _send(const std::string&);
-    // int _send(const File&);
     int _send(std::ifstream&);
     int _recv(std::string&);
+    int _send(HttpResponse&);
 };
 
 #endif //SOCKET_H
