@@ -87,21 +87,7 @@ void ServerSocket::work() {
                     HttpResponse response(request, port, name, &last_mod);
                     std::string res = response.to_string();
                     if(*(response.GetCode()) == 200) {
-                        int len2;
-                        int len1 = res.length();
-                        char* buf2 = to_str(response.file, len2);
-                        char* buf1 = new char[len1];
-                        buf1 = (char*) res.c_str();
-                        int size = len2 + len1 + 2;
-                        char* buf = new char[size];
-                        memcpy(buf, buf1, len1);
-                        buf[len1] = '\n';
-                        memcpy(buf + len1 + 1, buf2, len2);
-                        buf[len1 + len2 + 1] = '\0';
-                        send(client.GetSock(), buf, size, 0);
-                        std::cout << buf;
-                        delete[] buf2;
-                        delete[] buf;
+                        client._send(response);
                     } else {
                         std::cout << res;
                         client._send(res);
@@ -176,17 +162,6 @@ int ConnectedSocket::_connect(const SocketAddress& saddr) {
 int ConnectedSocket::_send(const std::string &request) {
     return send(sock, request.c_str(), request.length(), 0);
 }
-// int ConnectedSocket::_send(const File &request) {
-//     int size = request.length();
-//     char buf[size];
-//     int k = 0;
-//     std::cout << 1;
-//     while((k = read(request.Getfd(), buf, size)) > 0) {
-//         std::cout << send(sock, buf, k, 0);
-        
-//     }
-//     return k;
-// }
 int ConnectedSocket::_send(std::ifstream &request) {
     int len = 0;
     request.seekg(0, std::ios::end);
@@ -207,3 +182,23 @@ int ConnectedSocket::_recv(std::string& result) {
     return res;
 }
 
+int ConnectedSocket::_send(HttpResponse& r) {
+    std::string res = r.to_string();
+    int len1 = res.length();
+    r.file.seekg(0, std::ios::end);
+    // std::cout << "!!!" << r.body << std::endl;
+    // char* buf2 = (char*) r.body;
+    char* buf1 = new char[len1];
+    buf1 = (char*) res.c_str();
+    int size = r.GetCl() + len1 + 2;
+    char* buf = new char[size];
+    memcpy(buf, buf1, len1);
+    buf[len1] = '\n';
+    memcpy(buf + len1 + 1, r.body, r.GetCl());
+    buf[len1 + r.GetCl() + 1] = '\0';
+    int k = send(sock, buf, size, 0);
+    std::cout << buf;
+    // delete[] buf2;
+    // delete[] buf;
+    return k;
+}
